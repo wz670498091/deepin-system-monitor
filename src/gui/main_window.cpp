@@ -26,6 +26,7 @@
 #include "toolbar.h"
 #include "utils.h"
 #include "process/stats_collector.h"
+#include "system/system_ctl.h"
 
 std::atomic<MainWindow *> MainWindow::m_instance {nullptr};
 std::mutex MainWindow::m_mutex;
@@ -172,17 +173,23 @@ void MainWindow::initUI()
 
     titlebar()->setIcon(QIcon::fromTheme("deepin-system-monitor"));
     m_toolbar = new Toolbar(this, this);
+    m_toolbar->setFocusPolicy(Qt::TabFocus);
     titlebar()->setCustomWidget(m_toolbar);
     titlebar()->setMenuDisabled(true);
 
     DMenu *menu = new DMenu(this);
     titlebar()->setMenu(menu);
 
+    QWidget::setTabOrder(titlebar(), m_toolbar);
+
     // kill process
     m_killAction = new QAction(
         DApplication::translate("Title.Bar.Context.Menu", "Force end application"), menu);
     m_killAction->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_K));
     connect(m_killAction, &QAction::triggered, this, [ = ]() { Q_EMIT killProcessPerformed(); });
+
+    m_viewSysInfoAct = new QAction(DApplication::translate("Title.Bar.Context.Menu", "System Information"), menu);
+    connect(m_viewSysInfoAct, &QAction::triggered, this, [ = ]() { Q_EMIT viewSysInfoMenuItemClicked(); });
 
     // display mode
     m_modeMenu = new DMenu(DApplication::translate("Title.Bar.Context.Menu", "View"), menu);
@@ -224,7 +231,10 @@ void MainWindow::initUI()
     });
 
     menu->addAction(m_killAction);
+    menu->addSeparator();
+    menu->addAction(m_viewSysInfoAct);
     menu->addMenu(m_modeMenu);
+    menu->addSeparator();
 
     DApplicationHelper *dAppHelper = DApplicationHelper::instance();
     connect(dAppHelper, &DApplicationHelper::themeTypeChanged, this,
@@ -280,6 +290,11 @@ void MainWindow::initConnections()
     });
     connect(m_pages, &DStackedWidget::currentChanged, this,
     [ = ]() { m_toolbar->clearSearchText(); });
+    connect(this, &MainWindow::viewSysInfoMenuItemClicked, this, [ = ]() {
+        auto *page = new SysInfoDialog(this);
+        page->show();
+        SystemCtl::instance()->getSystemInfo();
+    });
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event)

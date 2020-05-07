@@ -14,6 +14,7 @@
 #include <QTimer>
 
 #include "ui_common.h"
+#include "gui/dialog/sys_info_dialog.h"
 
 DWIDGET_USE_NAMESPACE
 
@@ -50,6 +51,7 @@ Q_SIGNALS:
     void killProcessPerformed();
     void displayModeChanged(DisplayMode mode);
     void loadingStatusChanged(bool loading);
+    void viewSysInfoMenuItemClicked();
 
 public Q_SLOTS:
     inline void initDisplay()
@@ -75,14 +77,15 @@ private:
 
     Settings *m_settings;
 
-    QAction *m_killAction;
-    DMenu *m_modeMenu;
+    QAction *m_killAction               {};
+    QAction *m_viewSysInfoAct           {};
+    DMenu   *m_modeMenu                 {};
 
-    Toolbar *m_toolbar;
-    DStackedWidget *m_pages;
-    ProcessPageWidget *m_procPage;
-    SystemServicePageWidget *m_svcPage;
-    DShadowLine *m_tbShadow;
+    Toolbar                 *m_toolbar          {};
+    DStackedWidget          *m_pages            {};
+    ProcessPageWidget       *m_procPage         {};
+    SystemServicePageWidget *m_svcPage          {};
+    DShadowLine             *m_tbShadow         {};
 
     bool m_loading {true};
     char __unused__[7];     // ##padding##
